@@ -1,11 +1,12 @@
 # CPTEC-user
-Para utilização do framework CPTEC
 =====
 
 [![Logo](https://github.com/framework-CPTEC/_static/blob/main/framework.png)](https://www.cptec.inpe.br/)
 
 
-Framework-CPTEC é um pacote in Python para a distribuicao de dados de 
+###Framework-CPTEC 
+
+É um pacote in Python para a distribuicao de dados de 
 Modelos Numericos de forma segmentada/particionada. 
 
 Com esse pacote o usuario nao necessita fazer o Download de todo o Dado Bruto para
