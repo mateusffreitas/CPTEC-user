@@ -29,19 +29,7 @@ steps = 1
 Solicitacao do Pedido
 f = bam.load(date=date, var=vars,level=levels, steps=steps)
 
-
-MetPy is a collection of tools in Python for reading, visualizing and
-performing calculations with weather data.
-
-MetPy follows [semantic versioning](https://semver.org) in its version number. This means
-that any MetPy ``1.x`` release will be backwards compatible with an earlier ``1.y`` release. By
-"backward compatible", we mean that **correct** code that works on a ``1.y`` version will work
-on a future ``1.x`` version.
-
-For additional MetPy examples not included in this repository, please see the [Unidata Python
-Gallery](https://unidata.github.io/python-gallery/).
-
-We support Python >= 3.8.
+support Python >= 3.10.
 
 Need Help?
 ----------
