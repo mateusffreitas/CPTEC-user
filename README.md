@@ -12,7 +12,8 @@ Com esse pacote o usuario nao necessita fazer o Download de todo o Dado Bruto pa
 conseguir manipular somente a sua necessidade.
 
 Ex. de Pedido
-- Durante a inicialização do construtor informações sobre os dados são exibidas
+Durante a inicialização do construtor informações sobre os dados são exibidas
+
 bam = BAM.model()
 
 ## Pedido
@@ -25,7 +26,7 @@ levels = [1000, 850]
 - Steps = Numero de simulações futuras a partir da inicialização do modelo
 steps = 1
 
-- Solicitacao do Pedido
+Solicitacao do Pedido
 f = bam.load(date=date, var=vars,level=levels, steps=steps)
 
 
