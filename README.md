@@ -5,11 +5,11 @@
 
 ### Framework-CPTEC 
 
-É um pacote in Python para a distribuicao de dados de 
-Modelos Numericos de forma segmentada/particionada. 
+É um pacote in Python para a distribuição de dados brutos dos Modelos Numéricos de forma segmentada/particionada. Com esse pacote o usuário não necessita fazer o Download de todo o volume bruto o pacote auxilia a manipular somente a sua necessidade.
 
-Com esse pacote o usuario nao necessita fazer o Download de todo o Dado Bruto para
-conseguir manipular somente a sua necessidade.
+support Python >= 3.10.
+
+## Inicialização
 
 Ex. de Pedido
 Durante a inicialização do construtor informações sobre os dados são exibidas
