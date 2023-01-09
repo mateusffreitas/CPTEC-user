@@ -54,5 +54,8 @@ f = bam.load(date=date, var=vars,level=levels, steps=steps)
 ## Exemplos Jupyter Notebook
 
 conda install -c anaconda ipykernel
+
 pip install jupyter
+
 jupyter notebook
+
