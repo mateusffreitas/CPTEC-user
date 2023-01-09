@@ -11,7 +11,7 @@ support Python >= 3.10.
 
 - Criar ambiente conda
 
-conda create -n cptec python=3.10
+$conda create -n cptec python=3.10
 
 conda activate cptec
 
