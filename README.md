@@ -75,11 +75,11 @@ Usar essas informações para ajudar a definição das variáveis (date,vars,lev
 
 Setar as variáveis dentro dos exemplos antes de rodar.
 
-python get_data_oper.py
-
-python get_netcdf.py
-
-python plot_figure.py
+>python get_data_oper.py
+>
+>python get_netcdf.py
+>
+>python plot_figure.py
 
 ## Exemplos Jupyter Notebook
 
