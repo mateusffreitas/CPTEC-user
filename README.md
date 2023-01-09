@@ -51,6 +51,12 @@ f = bam.load(date=date, var=vars,level=levels, steps=steps)
 
 ## Exemplos Python
 
+python get_data_oper.py
+
+python get_netcdf.py
+
+python plot_figure.py
+
 ## Exemplos Jupyter Notebook
 
 conda install -c anaconda ipykernel
