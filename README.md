@@ -49,9 +49,9 @@ steps = 3
 
 f = bam.load(date=date, var=vars,level=levels, steps=steps)
 
-## Observação
+## Observações
 
-Apos a inicializacao do Modelo Especifico algumas configuracoes sao plotadas 
+Após a inicialização do Modelo Específico algumas configurações são plotadas. 
 
 Ex.:
 
