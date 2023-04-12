@@ -287,6 +287,8 @@ class model(object):
                             else:
 
                                 if lvl == 'surface': 
+
+                                    if var == 't2m' or value == 'TMP': lvl = '2 m above ground'
                                     
                                     if var == 'slp' or value == 'MSLET': lvl = 'mean sea level'
 
