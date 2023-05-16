@@ -7,7 +7,7 @@
 
 support Python >= 3.10.
 
-[Readthedocs - ](https://cptec-model.readthedocs.io/en/latest/index.html)
+[Readthedocs](https://cptec-model.readthedocs.io/en/latest/index.html)
 
 ## Instalação 
 
