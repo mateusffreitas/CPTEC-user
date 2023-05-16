@@ -137,7 +137,7 @@ class model(object):
 
 
 
-    def load(self, date=None, steps=1, var=['t2m'], level=[1000, 'surface']):
+    def load(self, date=None, steps=[0], var=['t2m'], level=[1000, 'surface']):
 
         """
         
@@ -150,12 +150,12 @@ class model(object):
         Parametros
         ------------------------------------------------------------------------------------------------------------       
         date  : Data da condição inicial date=YYYYMMDDHH, use HH para IC 00 e 12.
-        steps : Quantos passos previstos após inicialização do modelo, valor maximo 168.
+        steps : Array de inteiros com os passos desejados. onde 0 é a inicialização do modelo [0,1, ... ,168], valor maximo 168.
         var   : Array de string com nome das variaveis disponiveis para leitura ['t2m', 'precip']
         level : Array de inteiros com os niveis disponiveis para cada modelo [1000, 850]
         ------------------------------------------------------------------------------------------------------------       
 
-        load(date='2022082300', steps=6, var=['t', 'precip'], level=[1000, 850])
+        load(date='2022082300', steps=[0,1,5,9], var=['t', 'precip'], level=[1000, 850])
 
         ------------------------------------------------------------------------------------------------------------       
         
@@ -164,7 +164,7 @@ class model(object):
         ------------------------------------------------------------------------------------------------------------       
 
         """
-        if steps > 168: steps = 168
+        if (isinstance(steps,int)) : steps = [h for h in range(0, steps+1, 1)]
         if type(date) == int: date = str(date)
         if date == None: date = datetime.today().strftime("%Y%m%d")
 
@@ -177,7 +177,8 @@ class model(object):
         if len(self.start_date) == 8: self.start_date = f"{self.start_date}00"
 
         self.query_level = level
-        self.date = [(datetime.strptime(f'{self.start_date}',  '%Y%m%d%H') + timedelta(hours=int(h))).strftime("%Y%m%d%H") for h in range(0, steps+1)]
+        self.date = [(datetime.strptime(f'{self.start_date}',  '%Y%m%d%H') + timedelta(hours=int(h))).strftime("%Y%m%d%H") for h in steps]
+
         self.year       = self.start_date[0:4]
         self.mon        = self.start_date[4:6]
         self.day        = self.start_date[6:8]
