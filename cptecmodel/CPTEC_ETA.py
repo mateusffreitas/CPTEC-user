@@ -150,13 +150,14 @@ class model(object):
         Parametros
         ------------------------------------------------------------------------------------------------------------       
         date  : Data da condição inicial date=YYYYMMDDHH, use HH para IC 00 e 12.
-        steps : Array de inteiros com os passos desejados. onde 0 é a inicialização do modelo [0,1, ... ,168], valor maximo 168.
+        steps : Integer/Array de inteiros com os passos desejados. onde 0 é a inicialização do modelo [0,1, ... ,168], valor maximo 168.
         var   : Array de string com nome das variaveis disponiveis para leitura ['t2m', 'precip']
         level : Array de inteiros com os niveis disponiveis para cada modelo [1000, 850]
         ------------------------------------------------------------------------------------------------------------       
 
         load(date='2022082300', steps=[0,1,5,9], var=['t', 'precip'], level=[1000, 850])
-
+        load(date='2022082300', steps= 4, var=['t', 'precip'], level=[1000, 850])
+        
         ------------------------------------------------------------------------------------------------------------       
         
         Retorna um Xarray contendo todas variaveis solicitadas com as transformações contidas em self.dict
