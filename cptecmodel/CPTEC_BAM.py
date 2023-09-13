@@ -35,7 +35,7 @@ class model(object):
         
         self.dict = {   
                     "model"     : {
-                                    "name" : "BAM",
+                                    "name" : "bam",
                                     "parameter" : "TQ0666L064",
                                     "long_name" : "The Brazilian Global Atmospheric Model"
                                 },
@@ -97,7 +97,7 @@ class model(object):
                                     "format" :     "grb"
                                 },
             "server":   {
-                            "ftp"    :     "http://ftp.cptec.inpe.br"
+                            "ftp"    :     "http://dataserver.cptec.inpe.br"
             }
     
         } 
@@ -109,7 +109,7 @@ class model(object):
         self.dict.update({'path_to_save': os.getcwd()})
 
         self.local_path = f"INPE/{self.dict['model']['name']}/{self.dict['model']['parameter']}/brutos"
-        self.ftppath = f"/modelos/tempo/{self.dict['model']['name']}/{self.dict['model']['parameter']}/brutos"
+        self.ftppath = f"/dataserver_modelos/{self.dict['model']['name']}/{self.dict['model']['parameter']}/brutos"
         
         print(f"\n#### {self.dict['model']['long_name']} ({self.dict['model']['parameter']} / Hybrid) #####\n")
         start = time.strftime("%Y%m%d", time.gmtime(time.time()))
@@ -148,14 +148,13 @@ class model(object):
         Parametros
         ------------------------------------------------------------------------------------------------------------       
         date  : Data da condição inicial date=YYYYMMDDHH, use HH para IC 00 e 12.
-        steps : Integer/Array de inteiros com os passos desejados. onde 0 é a inicialização do modelo [0,1, ... ,28], valor maximo 28.
+        steps : Array de inteiros com os passos desejados. onde 0 é a inicialização do modelo [0,1, ... ,28], valor maximo 28.
         var   : Array de string com nome das variaveis disponiveis para leitura ['t2m', 'precip']
         level : Array de inteiros com os niveis disponiveis para cada modelo [1000, 850]
         ------------------------------------------------------------------------------------------------------------       
 
         load(date='2022082300', steps=[0,1,5,9], var=['t', 'precip'], level=[1000, 850])
-        load(date='2022082300', steps= 4, var=['t', 'precip'], level=[1000, 850])
-        
+
         ------------------------------------------------------------------------------------------------------------       
         
         Retorna um Xarray contendo todas variaveis solicitadas com as transformações contidas em self.dict
