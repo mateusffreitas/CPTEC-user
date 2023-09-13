@@ -255,7 +255,7 @@ class model(object):
                 invfile = self.dict['file']['name'].format(self.start_date, dt)
                 invfile = invfile.split('.grib2')[:-1]
                 invfile = f'{self.ftppath}/{self.year}/{self.mon}/{self.day}/{self.hour}/{invfile[0]}.inv'
-
+                print(invfile)
                 df = pd.read_csv(f"{self.dict['server']['ftp']}/{invfile}", skiprows=0, names=['header'])
 
                 df['header'] = df['header'].map(lambda x: x[:-1])
@@ -384,8 +384,8 @@ class model(object):
             
             f = xr.open_dataset(outfile, engine='pynio')
             f = f.assign_coords({'time': datetime.strptime(row['forecast_date'],  '%Y%m%d%H')})
-            #f = f.rename({'g0_lat_0' : 'latitude'})
-            #f = f.rename({'g0_lon_1' : 'longitude'})
+            f = f.rename({'lat_0' : 'latitude'})
+            f = f.rename({'lon_0' : 'longitude'})
 
             v = list(f.keys())
             var = outfile.split('/')[-1]
