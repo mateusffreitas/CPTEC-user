@@ -1,4 +1,3 @@
-import warnings
 from datetime  import datetime, timedelta
 import numpy as np
 import pandas as pd
@@ -9,7 +8,7 @@ import io
 import xarray as xr
 import time, random, glob, shutil, os
 import re
-warnings.simplefilter('always')
+
 
 class model(object):
 
