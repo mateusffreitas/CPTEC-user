@@ -8,7 +8,7 @@ import io
 import xarray as xr
 import time, random, glob, shutil, os
 import re
-
+import urllib
 
 class model(object):
 
@@ -334,10 +334,13 @@ class model(object):
 
             self.__curl__()
 
-        except Exception as e: 
-            #print(e)
+        except urllib.error.HTTPError as err:
             print('File not available on server!')
             self.file = None
+            return
+        except Exception as err:
+            print(err)
+            print(f"Unexpected {err=}, {type(err)=}")
 
             
        

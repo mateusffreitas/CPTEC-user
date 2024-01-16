@@ -7,6 +7,7 @@ import pycurl
 import io
 import xarray as xr
 import time, random, glob, shutil, os, re
+import urllib
 import warnings
 warnings.filterwarnings('ignore')
 
@@ -337,9 +338,13 @@ class model(object):
             self.setup.drop_duplicates(inplace=True)
             self.__curl__()
 
-        except:
+        except urllib.error.HTTPError as err:
             print('File not available on server!')
             self.file = None
+            return
+        except Exception as err:
+            print(err)
+            print(f"Unexpected {err=}, {type(err)=}")
 
 
     def __curl__(self):
