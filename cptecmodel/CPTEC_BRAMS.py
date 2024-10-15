@@ -96,7 +96,7 @@ class model(object):
                                     "format" :     "grib2"
                                 },
             "server":   {
-                            "ftp"    :     "http://ftp.cptec.inpe.br"
+                            "ftp"    :     "https://ftp.cptec.inpe.br"
             }
     
         } 
@@ -255,7 +255,7 @@ class model(object):
                 invfile = self.dict['file']['name'].format(self.start_date, dt)
                 invfile = invfile.split('.grib2')[:-1]
                 invfile = f'{self.ftppath}/{self.year}/{self.mon}/{self.day}/{self.hour}/{invfile[0]}.inv'
-                print(invfile)
+                #print(invfile)
                 df = pd.read_csv(f"{self.dict['server']['ftp']}/{invfile}", skiprows=0, names=['header'])
 
                 df['header'] = df['header'].map(lambda x: x[:-1])

@@ -98,7 +98,7 @@ class model(object):
                                     "format" :     "grb"
                                 },
             "server":   {
-                            "ftp"    :     "http://dataserver.cptec.inpe.br"
+                            "ftp"    :     "https://dataserver.cptec.inpe.br"
             }
     
         } 

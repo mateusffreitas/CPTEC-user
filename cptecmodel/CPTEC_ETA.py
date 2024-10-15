@@ -94,7 +94,7 @@ class model(object):
                             "format" :     "grib2",
                         },
             "server":   {
-                            "ftp"    :     "http://ftp.cptec.inpe.br"
+                            "ftp"    :     "https://ftp.cptec.inpe.br"
             }
 
 
