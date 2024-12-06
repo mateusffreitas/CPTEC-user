@@ -2,15 +2,22 @@
 from datetime  import datetime, timedelta
 import numpy as np
 import pandas as pd
-# import Nio
+import Nio
 import json
 import gc
 import pycurl
-import io
 import xarray as xr
 import time, random, glob, shutil, os
 import re
 import urllib
+import http.client
+import certifi
+
+try:
+    from io import BytesIO
+except ImportError:
+    from StringIO import StringIO as BytesIO
+
 
 class model(object):
 
@@ -108,6 +115,7 @@ class model(object):
         self.dict['area'].update({'reduce': False})
         self.dict.update({'save_netcdf': False})
         self.dict.update({'path_to_save': os.getcwd()})
+        self.dict.update({'lon_360_to_180': False})
 
         self.local_path = f"INPE/{self.dict['model']['name']}/{self.dict['model']['parameter']}/brutos"
         self.ftppath = f"/dataserver_modelos/{self.dict['model']['name']}/{self.dict['model']['parameter']}/brutos"
@@ -134,7 +142,7 @@ class model(object):
         print(f"Frequency: every 6 hours [0, 6, 12, 18,...,168].\n")
         self.session = random.random()
         model.__clean__()
-
+  
 
     def load(self, date=None, steps=[0], var=['t2m'], level=[1000, 'sfc']):
 
@@ -252,14 +260,23 @@ class model(object):
 
             for dt in self.date:
 
+                time.sleep(1)
+
                 invfile = self.dict['file']['name'].format(self.start_date, dt)
                 invfile = invfile.split('.grb')[:-1]
 
                 invfile = f'{self.ftppath}/{self.year}/{self.mon}/{self.day}/{self.hour}/{invfile[0]}.inv'
                 #print(f"{self.dict['server']['ftp']}/{invfile}")
 
-                df = pd.read_csv(f"{self.dict['server']['ftp']}/{invfile}", skiprows=0, names=['header'])
-
+                while True:
+                    try:
+                        print(f"{self.dict['server']['ftp']}/{invfile}")
+                        df = pd.read_csv(f"{self.dict['server']['ftp']}/{invfile}", skiprows=0, names=['header'])
+                        break
+                    except http.client.IncompleteRead as err:
+                        print("Retrying pd.read_csv..")
+                        time.sleep(2)
+                        continue
                 df['header'] = df['header'].map(lambda x: x[:-1])
                 df[['id', 'allocate', 'date', 'var','kpds5','kpds6','kpds7','tr', 'p1','p2', 'timeu','level', 'timeFct', 'nave']] = df['header'].str.split(':', expand=True)
                 df.drop('header', axis=1, inplace=True)
@@ -340,12 +357,12 @@ class model(object):
             self.__curl__()
             
         except urllib.error.HTTPError as err:
-            print('File not available on server!')
+            print('File not available on server!',err)
             self.file = None
             return
-        except Exception as err:
-            print(err)
-            print(f"Unexpected {err=}, {type(err)=}")
+        # except Exception as err:
+        #     print(err)
+        #     print(f"Unexpected {err=}, {type(err)=}")
 
     def __curl__(self):
 
@@ -368,94 +385,124 @@ class model(object):
             [os.remove(f) for f in fidx]
         
         for _,row in self.setup.iterrows():
+
+            time.sleep(2)
         
             grbfile = self.dict['file']['name'].format(row['start_date'], row['forecast_date'])
             grbfile = f"{self.ftppath}/{self.year}/{self.mon}/{self.day}/{self.hour}/{grbfile}"
-            c = pycurl.Curl()
-            c.setopt(pycurl.URL,f"{self.dict['server']['ftp']}/{grbfile}")
-            outfile = self.dict['file']['name'].format(row['start_date'], row['forecast_date'])
-            lvl = row['level'].replace(" ", "")
-            outfile = f"{pathout}/{row['varname']}_{lvl}_{outfile}"
+            print(f"{self.dict['server']['ftp']}/{grbfile}")
 
-            with open(outfile, "wb") as fout:
-                c.setopt(pycurl.WRITEDATA, fout)
-                c.setopt(c.RANGE, f"{row['lower']}-{row['upper']}") 
-                c.setopt(pycurl.VERBOSE, 0)
-                c.setopt(pycurl.FOLLOWLOCATION, 0)
-                c.perform()
-                c.close()
-            
-            fout.close()
-            
-            f = xr.open_dataset(outfile, engine='pynio')
-            f = f.assign_coords({'time': datetime.strptime(row['forecast_date'],  '%Y%m%d%H')})
-            f = f.rename({'g0_lat_0' : 'latitude'})
-            f = f.rename({'g0_lon_1' : 'longitude'})
+            #Change to max_tries
+            while True:
+                try:
+                    c = pycurl.Curl()
 
-            v = list(f.keys())
-            var = outfile.split('/')[-1]
-            var = var.split('_')[0]
-            f = f.rename({v[0] : var})
+                    c.setopt(pycurl.URL,f"{self.dict['server']['ftp']}/{grbfile}")
+                    outfile = self.dict['file']['name'].format(row['start_date'], row['forecast_date'])
+                    lvl = row['level'].replace(" ", "")
+                    outfile = f"{pathout}/{row['varname']}_{lvl}_{outfile}"
 
-            if 'mb' in row['level']:
-                lev = re.sub("[^0-9]", "", row['level'])
-                f = f.assign_coords({'level': float(lev)})
-                f = f.expand_dims(['level'])
-                f.level.attrs = {
-                            "long_name" :	 "pressure",
-                            "units"  :       "hPa",
-                            "positive":      "down",
-                            "standard_name": "air_pressure"
-        }
+                    with open(outfile,"wb") as fout:
+                        c.setopt(pycurl.WRITEDATA, fout)
+                        c.setopt(c.RANGE, f"{row['lower']}-{row['upper']}") 
+                        c.setopt(pycurl.VERBOSE, 1)
+                        c.setopt(pycurl.FOLLOWLOCATION, 0)
+                        c.setopt(pycurl.TIMEOUT_MS, 20000)
+                        c.setopt(pycurl.TIMEOUT, 3600)   
+                        c.setopt(pycurl.CAINFO, certifi.where())
+                        c.perform()
+                        response_code = c.getinfo(pycurl.RESPONSE_CODE)
+                        print(f"HTTP RESPONSE CODE {response_code}")
+                        c.close()
+                    
+                    if response_code != http.client.PARTIAL_CONTENT:
+                        raise pycurl.error(f"Error with http response {response_code}")
 
-            f = f.expand_dims(['time'])
-            outnc = outfile.split('/')[-1]
-            outnc = outnc.split('.')[:-1]
-            outnc = '.'.join(str(e) for e in outnc)
+                except http.client.IncompleteRead as err:
+                    print("Incomplete read. Retrying pycurl..",err)
+                    time.sleep(2)
+                    continue
+                except pycurl.error as err:
+                    print(err)
+                    print("Retrying pycurl..")
+                    time.sleep(2)
+                    continue
 
-            # Transform variables in self.dict['transform']
-            if var in self.dict['transform']:
-                tr = float(self.dict['transform'][var][1:])
-                op = self.dict['transform'][var][0]
-                f = eval(f'f {op} tr')
+                try:
+                    f = xr.open_dataset(outfile, engine='pynio')
+                except Nio.NIOError as err:
+                    print(f"Open Dataset Error: {err}")
+                    break
 
-            if 't2m' in f:
-                f['t2m'].attrs = {
-                            "long_name" :	 "Surface Temperature",
-                            "units"  :       "C",
-                            "standard_name": "temperature"
-        }
+                f = f.assign_coords({'time': datetime.strptime(row['forecast_date'],  '%Y%m%d%H')})
+                f = f.rename({'g0_lat_0' : 'latitude'})
+                f = f.rename({'g0_lon_1' : 'longitude'})
+                if self.dict['lon_360_to_180'] == True:
+                    f = f.assign_coords(longitude=((f.longitude + 180) % 360 - 180))
+                    f = f.reindex({"longitude": np.sort(f.longitude.values)})
 
-            if 't' in f:
-                f['t'].attrs = {
-                            "long_name" :	 "Temperature",
-                            "units"  :       "C",
-                            "standard_name": "temperature"
-        }
-            if os.path.exists(f"{pathout}/{outnc}.nc4"): os.remove(f"{pathout}/{outnc}.nc4")
+                v = list(f.keys())
+                var = outfile.split('/')[-1]
+                var = var.split('_')[0]
+                f = f.rename({v[0] : var})
 
-            if self.dict['area']['reduce'] ==  True:
+                if 'mb' in row['level']:
+                    lev = re.sub("[^0-9]", "", row['level'])
+                    f = f.assign_coords({'level': float(lev)})
+                    f = f.expand_dims(['level'])
+                    f.level.attrs = {
+                                "long_name" :	 "pressure",
+                                "units"  :       "hPa",
+                                "positive":      "down",
+                                "standard_name": "air_pressure"
+            }
 
-                lat1 = self.dict['area']['minlat']
-                lat2 = self.dict['area']['maxlat']
-                lon1 = self.dict['area']['minlon']
-                lon2 = self.dict['area']['maxlon']
-            
-                f2 = f.sel(latitude=slice(lat2, lat1), 
-                        longitude=slice(lon1, lon2)).copy()
+                f = f.expand_dims(['time'])
+                outnc = outfile.split('/')[-1]
+                outnc = outnc.split('.')[:-1]
+                outnc = '.'.join(str(e) for e in outnc)
+
+                # Transform variables in self.dict['transform']
+                if var in self.dict['transform']:
+                    tr = float(self.dict['transform'][var][1:])
+                    op = self.dict['transform'][var][0]
+                    f = eval(f'f {op} tr')
+
+                if 't2m' in f:
+                    f['t2m'].attrs = {
+                                "long_name" :	 "Surface Temperature",
+                                "units"  :       "C",
+                                "standard_name": "temperature"
+            }
+
+                if 't' in f:
+                    f['t'].attrs = {
+                                "long_name" :	 "Temperature",
+                                "units"  :       "C",
+                                "standard_name": "temperature"
+            }
+                if os.path.exists(f"{pathout}/{outnc}.nc4"): os.remove(f"{pathout}/{outnc}.nc4")
+
+                if self.dict['area']['reduce'] ==  True:
+
+                    lat1 = self.dict['area']['minlat']
+                    lat2 = self.dict['area']['maxlat']
+                    lon1 = self.dict['area']['minlon']
+                    lon2 = self.dict['area']['maxlon']
+                
+                    f2 = f.sel(latitude=slice(lat2, lat1), 
+                            longitude=slice(lon1, lon2)).copy()
+
+                else:
+
+                    f2 = f
 
                 f2.to_netcdf(f'{pathout}/{outnc}.nc4', encoding={'time': {'dtype': 'i4'}})
                 f2.close()
+                f.close()
 
-            else:
-
-                f2 = f
-
-            f2.to_netcdf(f'{pathout}/{outnc}.nc4', encoding={'time': {'dtype': 'i4'}})
-            f2.close()
-            f.close()
-
-            gc.collect()
+                gc.collect()
+                break
 
         files = glob.glob(f"{pathout}/*.nc4")
 
@@ -463,7 +510,7 @@ class model(object):
             fout = xr.open_dataset(files[0], chunks={'latitude': 150, 'longitude': 150})
 
         else:    
-            fout = xr.open_mfdataset(files,  combine='nested', parallel=False,  chunks={'latitude': 150, 'longitude': 150})
+            fout = xr.open_mfdataset(files,  combine='nested', parallel=False,  chunks={'latitude': 1500, 'longitude': 1500})
 
         fout.attrs = {
                             "center" :	"National Institute for Space Research - INPE",

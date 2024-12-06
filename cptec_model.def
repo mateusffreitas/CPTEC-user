@@ -1,0 +1,13 @@
+Bootstrap: docker
+From: mambaorg/micromamba:2.0.4
+
+%post
+  micromamba install --yes --name base --channel conda-forge \
+  python=3.10 pynio libcurl pycurl
+  micromamba clean --all --yes
+
+  echo "export PATH=${MAMBA_ROOT_PREFIX}/bin:${PATH}" >> $SINGULARITY_ENVIRONMENT
+  echo "export LD_LIBRARY_PATH=${MAMBA_ROOT_PREFIX}/lib:$LD_LIBRARY_PATH" >> $SINGULARITY_ENVIRONMENT
+  export PATH=${MAMBA_ROOT_PREFIX}/bin:${PATH}
+  export LD_LIBRARY_PATH=${MAMBA_ROOT_PREFIX}/lib:$LD_LIBRARY_PATH
+  python3.10 -m pip install eccodes xarray==2024.3.0 cfgrib netCDF4 dask certifi
