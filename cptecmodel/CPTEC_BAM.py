@@ -384,6 +384,8 @@ class model(object):
         if len(fidx) > 0:
             [os.remove(f) for f in fidx]
         
+        c = pycurl.Curl()
+
         for _,row in self.setup.iterrows():
 
             time.sleep(2)
@@ -395,7 +397,6 @@ class model(object):
             #Change to max_tries
             while True:
                 try:
-                    c = pycurl.Curl()
 
                     c.setopt(pycurl.URL,f"{self.dict['server']['ftp']}/{grbfile}")
                     outfile = self.dict['file']['name'].format(row['start_date'], row['forecast_date'])
@@ -407,14 +408,14 @@ class model(object):
                         c.setopt(c.RANGE, f"{row['lower']}-{row['upper']}") 
                         c.setopt(pycurl.VERBOSE, 1)
                         c.setopt(pycurl.FOLLOWLOCATION, 0)
-                        c.setopt(pycurl.TIMEOUT_MS, 20000)
-                        c.setopt(pycurl.TIMEOUT, 3600)   
+                        c.setopt(pycurl.TIMEOUT_MS, 2000)
+                        c.setopt(pycurl.TIMEOUT, 600)
                         c.setopt(pycurl.CAINFO, certifi.where())
                         c.perform()
                         response_code = c.getinfo(pycurl.RESPONSE_CODE)
-                        print(f"HTTP RESPONSE CODE {response_code}")
-                        c.close()
-                    
+                        # print(f"HTTP RESPONSE CODE {response_code}")
+
+                    c.reset()
                     if response_code != http.client.PARTIAL_CONTENT:
                         raise pycurl.error(f"Error with http response {response_code}")
 
@@ -504,6 +505,8 @@ class model(object):
                 gc.collect()
                 break
 
+        c.close()
+
         files = glob.glob(f"{pathout}/*.nc4")
 
         if len(files) == 1:
@@ -526,7 +529,8 @@ class model(object):
             ncout = ncout.replace(f"{self.dict['file']['format']}","nc4")
 
             if os.path.exists(f"{pathout}/{ncout}"): os.remove(f"{pathout}/{ncout}")
-            fout.to_netcdf(f"{pathout}/{ncout}")
+            encoding = {var: {'zlib': True, 'complevel': 1, 'shuffle': True} for var in fout.data_vars}
+            fout.to_netcdf(f"{pathout}/{ncout}", format="NETCDF4", encoding=encoding)
 
         field = fout.load()
         fout.close()
